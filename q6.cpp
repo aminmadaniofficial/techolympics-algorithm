@@ -22,8 +22,8 @@ void solve() {
 
     sort(a.begin(), a.end());
     
-    long long M = a[n - 1];
-    sum -= M;
+    long long maximum = a[n - 1];
+    sum -= maximum;
 
     vector<long long> dp(n, 0);
     vector<int> q(n, 0);
@@ -46,7 +46,7 @@ void solve() {
         }
 
         int j = q[head];
-        dp[i] = dp[j] + M + ((i - j - 1) * x);
+        dp[i] = dp[j] + maximum + ((i - j - 1) * x);
 
         while (tail - head >= 2) {
             int j1 = q[tail - 2];
@@ -67,7 +67,8 @@ void solve() {
         q[tail++] = i;
     }
 
-    cout << dp[n - 1] - sum << '\n';
+    long long ans = dp[n - 1] - sum;
+    cout << ans << '\n';
 }
 
 int main() {
