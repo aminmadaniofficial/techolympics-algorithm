@@ -4,21 +4,43 @@
 using namespace std;
 
 void solve() {
-    long long n, h, c;
-    cin >> n >> h >> c;
+    int n;
+    cin >> n;
 
-    long long first = h + c;
+    vector<long long> a(n + 1, 0);
 
-    if (n <= first) {
-        cout << n * n << '\n';
-        return;
+    for (int i = 2; i <= n; i++) {
+        cin >> a[i];
+        a[i] += a[i - 1];
     }
 
-    long long remaining = n - first;
-    long long dor = remaining / (2 * h);
-    long long last = (remaining % (2 * h)) / 2;
+    long long ans = 1;
+    int p = 1;
 
-    long long ans = (first * first) + (dor * h * h) + (last * last);
+    for (int i = 2; i <= n; i++) {
+        int r = min(n, i - 1 + p);
+        int len = r - i + 1;
+
+        int t = 0;
+        int x = 1;
+
+        while (x < len) {
+            x *= 2;
+            t++;
+        }
+
+        long long ans2 = a[r] - (2 * a[i - 1]);
+
+        if (i - 2 > t) {
+            ans2++;
+        }
+
+        ans = max(ans, ans2);
+
+        if (p <= n) {
+            p *= 2;
+        }
+    }
 
     cout << ans << '\n';
 }
