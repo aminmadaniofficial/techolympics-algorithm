@@ -3,85 +3,67 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-using ll = long long;
-using i128 = __int128_t;
+typedef long long ll;
+typedef __int128_t i128;
 
-struct Line {
-    ll m, c;
-    ll eval(ll x) const {
-        return m * x + c;
-    }
-};
+const int MAXN = 300005;
+ll a[MAXN], dp[MAXN];
+ll m[MAXN], c[MAXN];
+int head, tail;
 
-// Returns true if l2 is redundant given l1 and l3
-// l1.m > l2.m > l3.m
-// intersect(l1, l2) >= intersect(l2, l3)
-// (l2.c - l1.c) / (l1.m - l2.m) >= (l3.c - l2.c) / (l2.m - l3.m)
-bool is_redundant(const Line& l1, const Line& l2, const Line& l3) {
-    return (i128)(l2.c - l1.c) * (l2.m - l3.m) >= (i128)(l3.c - l2.c) * (l1.m - l2.m);
+bool bad(int l1, int l2, int l3) {
+    return (i128)(c[l2] - c[l1]) * (m[l2] - m[l3]) >= (i128)(c[l3] - c[l2]) * (m[l1] - m[l2]);
 }
 
-void solve() {
-    int n;
-    if (!(cin >> n)) return;
-    
-    vector<ll> a(n);
-    for (int i = 0; i < n; ++i) {
-        cin >> a[i];
+void add(ll slope, ll intercept) {
+    m[tail] = slope;
+    c[tail] = intercept;
+    while (tail - head >= 2 && bad(tail - 2, tail - 1, tail)) {
+        m[tail - 1] = m[tail];
+        c[tail - 1] = c[tail];
+        tail--;
     }
-    
-    if (n <= 1) {
-        cout << 0 << "\n";
-        return;
+    tail++;
+}
+
+ll query(ll x) {
+    while (head + 1 < tail && m[head + 1] * x + c[head + 1] <= m[head] * x + c[head]) {
+        head++;
     }
-    
-    sort(a.begin(), a.end());
-    ll M = a[n - 1];
-    
-    // Convex Hull Trick for query min:
-    // slopes m = -j are strictly decreasing (0, -1, -2, ...)
-    // queries x = a[i-1] are strictly increasing
-    vector<Line> dq;
-    dq.reserve(n);
-    
-    auto add_line = [&](ll m, ll c) {
-        Line cur = {m, c};
-        while (dq.size() >= 2 && is_redundant(dq[dq.size() - 2], dq.back(), cur)) {
-            dq.pop_back();
-        }
-        dq.push_back(cur);
-    };
-    
-    int head = 0;
-    auto query = [&](ll x) -> ll {
-        while (head + 1 < (int)dq.size() && dq[head + 1].eval(x) <= dq[head].eval(x)) {
-            head++;
-        }
-        return dq[head].eval(x);
-    };
-    
-    // Base line: j = 0 => m = 0, c = dp[0] = 0
-    add_line(0, 0);
-    
-    vector<ll> dp(n, 0);
-    for (int i = 1; i < n; ++i) {
-        ll x = a[i - 1];
-        dp[i] = M + (ll)(i - 1) * x + query(x);
-        add_line(-i, dp[i]);
-    }
-    
-    ll sum_all_except_M = 0;
-    for (int i = 0; i < n - 1; ++i) {
-        sum_all_except_M += a[i];
-    }
-    
-    ll ans = dp[n - 1] - sum_all_except_M;
-    cout << ans << "\n";
+    return m[head] * x + c[head];
 }
 
 int main() {
     cin.tie(0) -> sync_with_stdio(0);
-    
-    solve();
+
+    int n;
+    if (!(cin >> n)) return 0;
+
+    for (int i = 0; i < n; i++) {
+        cin >> a[i];
+    }
+
+    if (n <= 1) {
+        cout << 0 << "\n";
+        return 0;
+    }
+
+    sort(a, a + n);
+    ll mx = a[n - 1];
+
+    add(0, 0);
+
+    for (int i = 1; i < n; i++) {
+        ll x = a[i - 1];
+        dp[i] = mx + 1LL * (i - 1) * x + query(x);
+        add(-i, dp[i]);
+    }
+
+    ll sum = 0;
+    for (int i = 0; i < n - 1; i++) {
+        sum += a[i];
+    }
+
+    cout << dp[n - 1] - sum << "\n";
     return 0;
 }
