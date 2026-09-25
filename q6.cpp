@@ -7,30 +7,35 @@ typedef long long ll;
 typedef __int128_t i128;
 
 const int MAXN = 300005;
-ll a[MAXN], dp[MAXN];
-ll m[MAXN], c[MAXN];
-int head, tail;
 
-bool bad(int l1, int l2, int l3) {
-    return (i128)(c[l2] - c[l1]) * (m[l2] - m[l3]) >= (i128)(c[l3] - c[l2]) * (m[l1] - m[l2]);
+ll a[MAXN];
+ll dp[MAXN];
+
+ll K[MAXN];
+ll B[MAXN];
+int ptr = 0;
+int sz = 0;
+
+bool is_bad(int l1, int l2, int l3) {
+    return (i128)(B[l2] - B[l1]) * (K[l2] - K[l3]) >= (i128)(B[l3] - B[l2]) * (K[l1] - K[l2]);
 }
 
-void add(ll slope, ll intercept) {
-    m[tail] = slope;
-    c[tail] = intercept;
-    while (tail - head >= 2 && bad(tail - 2, tail - 1, tail)) {
-        m[tail - 1] = m[tail];
-        c[tail - 1] = c[tail];
-        tail--;
+void add_line(ll k, ll b) {
+    K[sz] = k;
+    B[sz] = b;
+    while (sz - ptr >= 2 && is_bad(sz - 2, sz - 1, sz)) {
+        K[sz - 1] = K[sz];
+        B[sz - 1] = B[sz];
+        sz--;
     }
-    tail++;
+    sz++;
 }
 
-ll query(ll x) {
-    while (head + 1 < tail && m[head + 1] * x + c[head + 1] <= m[head] * x + c[head]) {
-        head++;
+ll get_min(ll x) {
+    while (ptr + 1 < sz && K[ptr + 1] * x + B[ptr + 1] <= K[ptr] * x + B[ptr]) {
+        ptr++;
     }
-    return m[head] * x + c[head];
+    return K[ptr] * x + B[ptr];
 }
 
 int main() {
@@ -51,19 +56,20 @@ int main() {
     sort(a, a + n);
     ll mx = a[n - 1];
 
-    add(0, 0);
+    add_line(0, 0);
 
     for (int i = 1; i < n; i++) {
         ll x = a[i - 1];
-        dp[i] = mx + 1LL * (i - 1) * x + query(x);
-        add(-i, dp[i]);
+        dp[i] = mx + 1LL * (i - 1) * x + get_min(x);
+        add_line(-i, dp[i]);
     }
 
-    ll sum = 0;
+    ll sum_vals = 0;
     for (int i = 0; i < n - 1; i++) {
-        sum += a[i];
+        sum_vals += a[i];
     }
 
-    cout << dp[n - 1] - sum << "\n";
+    cout << dp[n - 1] - sum_vals << "\n";
+
     return 0;
 }
