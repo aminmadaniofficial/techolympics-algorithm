@@ -3,8 +3,6 @@
 *.o
 *.bin
 a.out
-p*
-!p*.cpp
-!p*.py
-!p*.txt
+q[1-9]
+!q*.cpp
 .vscode/
