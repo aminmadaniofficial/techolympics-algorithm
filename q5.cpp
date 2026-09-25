@@ -3,97 +3,112 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-typedef long long ll;
-const int MOD = 1e9 + 7;
+void solve() {
+    long long n;
+    int k;
+    if (!(cin >> n >> k)) return;
 
-int K;
-ll S[55][55], fact[55];
+    const int MOD = 1e9 + 7;
 
-struct Mat {
-    int a[4][4][55];
-    Mat() { memset(a, 0, sizeof(a)); }
-};
+    auto power = [&](long long base, long long exp) {
+        long long res = 1;
+        base %= MOD;
+        while (exp > 0) {
+            if (exp % 2 == 1) {
+                res = (res * base) % MOD;
+            }
+            base = (base * base) % MOD;
+            exp /= 2;
+        }
+        return res;
+    };
 
-Mat mul(const Mat& A, const Mat& B) {
-    Mat C;
+    long long S[55][55] = {};
+    long long fact[55] = {1};
+    S[0][0] = 1;
+    for (int i = 1; i <= k; i++) {
+        fact[i] = (fact[i - 1] * i) % MOD;
+        for (int j = 1; j <= i; j++) {
+            S[i][j] = (j * S[i - 1][j] + S[i - 1][j - 1]) % MOD;
+        }
+    }
+
+    long long T[4][4][55] = {};
+    long long res[4][4][55] = {};
+
     for (int i = 0; i < 4; i++) {
-        for (int k = 0; k < 4; k++) {
-            for (int j = 0; j < 4; j++) {
-                for (int p = 0; p <= K; p++) {
-                    if (!A.a[i][k][p]) continue;
-                    for (int q = 0; p + q <= K; q++) {
-                        C.a[i][j][p + q] = (C.a[i][j][p + q] + 1LL * A.a[i][k][p] * B.a[k][j][q]) % MOD;
+        res[i][i][0] = 1;
+    }
+
+    for (int u = 0; u < 4; u++) {
+        T[u][u][0] += 3;
+        for (int d = 1; d <= 3; d++) {
+            T[u][d][0] += 1;
+            if (u > 0 && d > u) {
+                T[u][d][1] += 1;
+            }
+        }
+    }
+
+    auto multiply = [&](long long A[4][4][55], long long B[4][4][55]) {
+        long long C[4][4][55] = {};
+        for (int i = 0; i < 4; i++) {
+            for (int m = 0; m < 4; m++) {
+                for (int j = 0; j < 4; j++) {
+                    for (int p = 0; p <= k; p++) {
+                        if (A[i][m][p] == 0) continue;
+                        for (int q = 0; p + q <= k; q++) {
+                            C[i][j][p + q] = (C[i][j][p + q] + A[i][m][p] * B[m][j][q]) % MOD;
+                        }
                     }
                 }
             }
         }
-    }
-    return C;
-}
+        for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < 4; j++) {
+                for (int p = 0; p <= k; p++) {
+                    A[i][j][p] = C[i][j][p];
+                }
+            }
+        }
+    };
 
-ll qpow(ll b, ll p) {
-    ll res = 1;
-    b %= MOD;
+    long long p = n;
     while (p > 0) {
-        if (p & 1) res = res * b % MOD;
-        b = b * b % MOD;
-        p >>= 1;
-    }
-    return res;
-}
-
-void solve() {
-    ll n;
-    if (!(cin >> n >> K)) return;
-
-    Mat T, res;
-    for (int i = 0; i < 4; i++) res.a[i][i][0] = 1;
-
-    T.a[0][0][0] = 3; T.a[0][1][0] = 1; T.a[0][2][0] = 1; T.a[0][3][0] = 1;
-    T.a[1][1][0] = 4; T.a[1][2][0] = 1; T.a[1][3][0] = 1;
-    T.a[2][1][0] = 1; T.a[2][2][0] = 4; T.a[2][3][0] = 1;
-    T.a[3][1][0] = 1; T.a[3][2][0] = 1; T.a[3][3][0] = 4;
-    if (K >= 1) {
-        T.a[1][2][1] = 1;
-        T.a[1][3][1] = 1;
-        T.a[2][3][1] = 1;
+        if (p % 2 == 1) {
+            multiply(res, T);
+        }
+        multiply(T, T);
+        p /= 2;
     }
 
-    ll p = n;
-    while (p > 0) {
-        if (p & 1) res = mul(res, T);
-        T = mul(T, T);
-        p >>= 1;
+    long long ans = 0;
+    for (int j = 0; j <= k; j++) {
+        long long ways = 0;
+        for (int i = 0; i < 4; i++) {
+            ways = (ways + res[0][i][j]) % MOD;
+        }
+        long long term = (S[k][j] * fact[j]) % MOD;
+        term = (term * ways) % MOD;
+        ans = (ans + term) % MOD;
     }
 
-    ll sum_g_k = 0;
-    for (int j = 0; j <= K; j++) {
-        ll total = 0;
-        for (int i = 0; i < 4; i++) total = (total + res.a[0][i][j]) % MOD;
-        ll term = S[K][j] * fact[j] % MOD * total % MOD;
-        sum_g_k = (sum_g_k + term) % MOD;
-    }
+    long long total_codes = power(3, n % (MOD - 1));
+    long long inv_codes = power(total_codes, MOD - 2);
+    ans = (ans * inv_codes) % MOD;
 
-    ll inv3 = qpow(3, MOD - 2);
-    ll ans = sum_g_k * qpow(inv3, n % (MOD - 1)) % MOD;
-    cout << ans << "\n";
+    cout << ans << '\n';
 }
 
 int main() {
     cin.tie(0) -> sync_with_stdio(0);
 
-    S[0][0] = 1;
-    for (int i = 1; i <= 50; i++) {
-        for (int j = 1; j <= i; j++) {
-            S[i][j] = (1LL * j * S[i - 1][j] + S[i - 1][j - 1]) % MOD;
-        }
-    }
-    fact[0] = 1;
-    for (int i = 1; i <= 50; i++) fact[i] = fact[i - 1] * i % MOD;
-
     int t;
     if (cin >> t) {
-        while (t--) solve();
+        while (t--) {
+            solve();
+        }
     }
+
     return 0;
 }
