@@ -1,0 +1,10 @@
+*.out
+*.exe
+*.o
+*.bin
+a.out
+p*
+!p*.cpp
+!p*.py
+!p*.txt
+.vscode/
