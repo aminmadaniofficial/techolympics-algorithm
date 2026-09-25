@@ -28,43 +28,48 @@ void solve() {
     vector<long long> dp(n, 0);
     vector<int> q(n, 0);
     
-    int head = 0, tail = 1;
+    int first = 0;
+    int last = 1;
 
     for (int i = 1; i < n; i++) {
         long long x = a[i - 1];
         
-        while (tail - head >= 2) {
-            int j1 = q[head];
-            int j2 = q[head + 1];
+        while (last - first >= 2) {
+            int j1 = q[first];
+            int j2 = q[first + 1];
 
             if (dp[j2] - (j2 * x) <= dp[j1] - (j1 * x)) {
-                head++;
+                first++;
             } 
+
             else {
                 break;
             }
         }
 
-        int j = q[head];
+        int j = q[first];
         dp[i] = dp[j] + maximum + ((i - j - 1) * x);
 
-        while (tail - head >= 2) {
-            int j1 = q[tail - 2];
-            int j2 = q[tail - 1];
+        while (last - first >= 2) {
+            int j1 = q[last - 2];
+            int j2 = q[last - 1];
 
-            double slope1 = 1.0 * (dp[j2] - dp[j1]) / (j2 - j1);
-            double slope2 = 1.0 * (dp[i] - dp[j2]) / (i - j2);
+            long long y1 = dp[j2] - dp[j1];
+            long long x1 = j2 - j1;
             
-            if (slope1 >= slope2) {
-                tail--;
+            long long y2 = dp[i] - dp[j2];
+            long long x2 = i - j2;
+            
+            if (y1 * x2 >= y2 * x1) {
+                last--;
             } 
-            
+
             else {
                 break;
             }
         }
         
-        q[tail++] = i;
+        q[last++] = i;
     }
 
     long long ans = dp[n - 1] - sum;
