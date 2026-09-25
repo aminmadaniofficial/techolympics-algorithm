@@ -19,7 +19,7 @@ void solve() {
 
     int maximum = max({x, y, z});
 
-    if (maximum) {
+    if (x == maximum) {
         cout << 1 << '\n';
     }
 
